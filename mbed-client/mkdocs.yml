@@ -1,0 +1,16 @@
+site_name: ARM mbed Cloud Client Guide
+theme: readthedocs
+use directory_urls: false
+pages:
+- ['Index.md','ARM mbed Cloud Client Guide']
+- ['Introduction.md','ARM mbed Cloud Client overview']
+- ['client_setup_reg_unreg.md','The Client Setup and Registration feature']
+- ['Howto.md','How to use the mbed Cloud Client API']
+- ['BuildSystem.md','The build system for mbed Cloud Client']
+- ['PortingInstructions.md','Porting mbed Cloud Client in different platforms']
+- ['migration_from_mbed_client.md','Migrating mbed Client application to mbed Cloud Client']
+
+
+
+
+

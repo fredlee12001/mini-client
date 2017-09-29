@@ -1,0 +1,26 @@
+#--- Inputs ----#
+CPPUTEST_HOME = /usr
+CPPUTEST_USE_EXTENSIONS = Y
+CPPUTEST_USE_VPATH = Y
+CPPUTEST_USE_GCOV = Y
+CPP_PLATFORM = gcc
+INCLUDE_DIRS =\
+    ../../../../../unittests/common\
+    ../../../../../unittests/stub\
+    ../../../../../mbed-client/mbed-client\
+    ../../../../../mbed-client\
+    ../../../../source\
+    ../../../../source/include\
+    ../../../../mbed-client-mbedtls\
+    ../../../../mbed-client-c\
+    ../../../../mbed-client-c/source/include\
+    ../../../../mbed-client-c/nsdl-c\
+    ../../../../../test_modules/mbed-coap\
+    ../../../../../test_modules/mbed-coap/mbed-coap\
+    ../../../../../test_modules/mbed-trace\
+    ../../../../../test_modules/nanostack-libservice/mbed-client-libservice\
+    ../../../../../test_modules/mbed-client-randlib/mbed-client-randlib\
+    /usr/include\
+    $(CPPUTEST_HOME)/include\
+
+CPPUTESTFLAGS = -D__thumb2__ -w

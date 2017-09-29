@@ -1,0 +1,10 @@
+{
+   TEMP_IOTPAL_387
+   Memcheck:Overlap
+   fun:memcpy@@GLIBC_2.14
+   fun:pal_plat_osRandomBuffer
+   fun:pal_plat_RTOSInitialize
+   fun:pal_RTOSInitialize
+   fun:pal_init
+   ...
+}

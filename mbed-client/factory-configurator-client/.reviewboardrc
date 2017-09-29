@@ -1,0 +1,2 @@
+REPOSITORY = 'Factory Client'
+REVIEWBOARD_URL = "http://prov-docker.kfn.arm.com:8000"

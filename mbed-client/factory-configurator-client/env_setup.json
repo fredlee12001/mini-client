@@ -1,0 +1,61 @@
+{
+    "repositories":{
+        "mbed-client-esfs": {
+            "git-url": "git@github.com:ARMmbed/mbed-client-esfs.git",
+            "ref-spec": "9362f981d35422351fd12784a6b840736d07ca9d",
+            "ref-file-name": "mbed-client-esfs.lib"
+        },
+        "mbed-os": {
+            "git-url": "git@github.com:ARMmbed/mbed-os.git",
+            "ref-spec": "3179b1cffddea0f0feed1dd551b0e7dc946c12f5",
+            "ref-file-name": "mbed-os.lib"
+        },
+        "sd-driver": {
+            "git-url": "git@github.com:ARMmbed/sd-driver.git",
+            "ref-spec": "be68bf8f5866ff695cb9fcbde17083a86b867090",
+            "ref-file-name": "sd-driver.lib"
+        },
+        "mbed-client-pal": {
+            "git-url": "git@github.com:ARMmbed/mbed-client-pal.git",
+            "ref-spec": "54b315269baa1d948a2debb8ee7990f03c90da6f",
+            "ref-file-name": "mbed-client-pal.lib"
+        },
+        "mbed-trace": {
+            "git-url": "git@github.com:ARMmbed/mbed-trace.git",
+            "ref-spec": "a5cce883e651aa5206c5b1cb47eea063a814b575",
+            "ref-file-name": "mbed-trace.lib"
+        },
+        "pal-platform": {
+            "git-url": "git@github.com:ARMmbed/pal-platform.git",
+            "ref-spec": "09b9501dbf7649f6aa8dccaa14a030c9edd2e5e8",
+            "ref-file-name": "pal-platform.lib"
+        },
+        "nanostack-libservice": {
+            "git-url": "git@github.com:ARMmbed/nanostack-libservice.git",
+            "ref-spec": "f908f79b11b06100dd8cd2a4e87bd95d48890142",
+            "ref-file-name": "nanostack-libservice.lib"
+        },
+        "secsrv-cbor": {
+            "git-url": "git@github.com:ARMmbed/secsrv-cbor.git",
+            "ref-spec": "38d8fc81c4817942bad908db00c69923a876727a",
+            "ref-file-name": "secsrv-cbor.lib"
+        },
+        "e2e-unity": {
+            "git-url": "git@github.com:ARMmbed/e2e-unity.git",
+            "ref-spec": "00c3d981a042165ddf6de066532575745e29ce53",
+            "custom-dir": "unity",
+            "ref-file-name": "unity.lib"
+        }
+      },
+
+      "mbed-os-dev": {
+          "repositories-to-clone": ["e2e-unity"],
+          "files-to-generate": ["mbed-client-esfs", "secsrv-cbor", "mbed-os", "sd-driver", "mbed-client-pal", "secsrv-cbor", "mbed-trace"]
+      },
+
+      "pal-dev": {
+          "repositories-to-clone": ["mbed-client-esfs", "secsrv-cbor", "e2e-unity", "mbed-client-pal", "pal-platform", "mbed-trace", "nanostack-libservice"],
+          "files-to-generate": ["mbed-client-pal", "pal-platform", "mbed-client-esfs", "secsrv-cbor", "mbed-trace", "nanostack-libservice"]
+      }
+}
+

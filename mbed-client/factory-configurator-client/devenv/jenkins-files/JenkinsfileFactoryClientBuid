@@ -1,0 +1,55 @@
+#!/usr/bin/env groovy
+
+node('prov_bld') {
+	def currBuildStatus = hudson.model.Result.SUCCESS
+	try {
+		stage('pre_submit') {
+            sh "rm -rf factory-configurator-client"
+			timeout(time: 80, unit: 'MINUTES') {
+				checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'factory-configurator-client'], [$class: 'CleanBeforeCheckout']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '01ff549f-c379-4717-bbcb-9df5227ad097', url: 'git@github.com:ARMmbed/factory-configurator-client.git']]]
+				dir('factory-configurator-client') {
+					sh """#!/bin/bash -lxe
+						. devenv/pv_env_setup.sh -q K64F_MBEDOS_ARM_GCC
+						/bin/bash ./devenv/pre-submit/pre_submit.sh --profile all --rsync no
+					"""
+				}
+			}
+		}
+	} catch (Exception e) {
+		currBuildStatus = hudson.model.Result.FAILURE
+		throw e
+	} finally {
+		
+		dir('factory-configurator-client') {
+			// try catch added so that emails will be sent if archived artifacts are empty.
+			try {
+				// Should be fixed to "out/**/unit-tests/*" since PC build creates elf files and not bin files.
+				archiveArtifacts "out/**/unit-tests/*.bin"
+			} catch (Exception e) {
+				currBuildStatus = hudson.model.Result.FAILURE
+			}
+		}
+		def subjectStatus = 'SUCCESS'
+		def shouldSend = true
+		def prevBuildStatus = currentBuild.rawBuild.getPreviousBuild()?.getResult()
+		if (currBuildStatus.equals(hudson.model.Result.SUCCESS)) {
+			if (prevBuildStatus.equals(hudson.model.Result.FAILURE) ||
+				prevBuildStatus.equals(hudson.model.Result.ABORTED) ||
+				prevBuildStatus.equals(hudson.model.Result.UNSTABLE)) {
+				subjectStatus = 'FIXED'
+			} else {
+				shouldSend = false
+			}
+		} else {
+			if (prevBuildStatus.equals(hudson.model.Result.SUCCESS)) {
+				subjectStatus = 'BROKEN'
+			} else {
+				subjectStatus = 'Still FAILED'
+			}
+		}
+		
+		if (shouldSend) {
+			emailext body: 'Please go to ${BUILD_URL} and verify the build', recipientProviders: [[$class: 'CulpritsRecipientProvider']], subject: "${subjectStatus}! Job ${JOB_NAME} (${BUILD_NUMBER})", to: 'iot-eng-provisioning-client@arm.com;Evgeni.Bolotin@arm.com;Nimrod.Zimerman@arm.com'
+		}
+	}
+}

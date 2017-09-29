@@ -1,0 +1,12 @@
+# NOTE - This file should reside in the %APPDATA% directory!
+
+# Synchronization directories.
+# UNCOMMENT AND CHANGE THE BELOW TO REFLECT YOUR LOCAL AND REMOTE WORK DIRECTORIES!
+#root1: c:/data/work/spv1
+#root2: ssh://prov-dev.kfn.arm.com//sharedhome/<USERNAME>/spv1
+
+# Ignored files can be configured in the unison_sync_ignores.txt file, in the script directory.
+
+# SSH path on Windows -
+# CHANGE THIS TO REFLECT THE PATH TO YOUR SSH BINARY ON WINDOWS!
+ssh: c:/cygwin64/bin/ssh.exe

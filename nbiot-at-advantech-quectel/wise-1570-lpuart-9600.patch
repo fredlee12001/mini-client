@@ -1,0 +1,14 @@
+diff --git i/targets/TARGET_STM/TARGET_STM32L4/TARGET_STM32L486xG/TARGET_NUCLEO_L486RG/system_clock.c w/targets/TARGET_STM/TARGET_STM32L4/TARGET_STM32L486xG/TARGET_NUCLEO_L486RG/system_clock.c
+index 6bdfc8669..e548f560a 100644
+--- i/targets/TARGET_STM/TARGET_STM32L4/TARGET_STM32L486xG/TARGET_NUCLEO_L486RG/system_clock.c
++++ w/targets/TARGET_STM/TARGET_STM32L4/TARGET_STM32L486xG/TARGET_NUCLEO_L486RG/system_clock.c
+@@ -338,7 +338,8 @@ uint8_t SetSysClock_PLL_MSI(void)
+     /* Enable MSI Auto-calibration through LSE */
+     HAL_RCCEx_EnableMSIPLLMode();
+     /* Select MSI output as USB clock source */
+-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USB;
++    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USB  | RCC_PERIPHCLK_LPUART1;
++    PeriphClkInitStruct.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_LSE;
+     PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_MSI; /* 48 MHz */
+     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
+     // Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 clocks dividers

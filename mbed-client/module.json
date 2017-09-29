@@ -1,0 +1,22 @@
+{
+  "name": "mbed-cloud-client",
+  "version": "0.0.1",
+  "description": "Client side of the mbed-cloud",
+  "keywords": [],
+  "author": "Tero Jääskö <tero.jaasko@arm.com>",
+  "homepage": "https://github.com/ARMmbed/mbed-cloud-client",
+  "license": "LicenseRef-LICENSE",
+  "lib": ".",
+  "dependencies": {
+      "factory-configurator-client": "ARMmbed/factory-configurator-client#daf4934ad3c0df2391981f988b285a0487b0bf67",
+      "pal": "ARMmbed/mbed-client-pal#RR1.2.2-RC5",
+      "update-client-hub": "ARMmbed/update-client-hub",
+      "mbed-coap": "ARMmbed/mbed-coap#55fe2c6537ea5f71b170e6ada457ecdd5bce1357",
+      "nanostack-randlib": "ARMmbed/mbed-client-randlib#531457e3b0953e43c343d025351da4fb64be8ef1",
+      "mbed-trace": "ARMmbed/mbed-trace#b731d954d111d92199b2a0402dc9a3d52f5d4a17",
+      "ns-hal-pal": "ARMmbed/ns-hal-pal#10868a0ef200dfce624be5b359864e522286cee7",
+      "sal-stack-nanostack-eventloop": "ARMmbed/sal-stack-nanostack-eventloop#be7cdd6bf4b1e9f4205e0ae5c54331488a33fb90"
+  },
+  "extraIncludes": ["source", "source/include", "mbed-cloud-client", "mbed-client", "mbed-client/mbed-client-c", "mbed-client/mbed-client", "mbed-client/mbed-client-mbed-tls", "mbed-client/mbed-client-classic", "mbed-client/source", "mbed-client/mbed-client-c/nsdl-c", "mbed-client/mbed-client-c/source/include"],
+  "targetDependencies": {}
+}

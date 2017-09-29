@@ -1,0 +1,65 @@
+#!/usr/bin/env groovy
+
+def currBuildStatus = hudson.model.Result.SUCCESS
+
+node('prov-test-linux') {
+	try {
+		deleteDir()
+		step ([$class: 'CopyArtifact', projectName: 'Factory_Client_Build']);
+		def files = findFiles(glob: "out/k64f_mbedos_*/unit-tests/*.bin")
+		def num_files = files.size()
+		echo "num of files - ${num_files}"
+		
+		sh "rm -rf qe-scripts"
+		checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'qe-scripts']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '01ff549f-c379-4717-bbcb-9df5227ad097', url: 'git@github.com:ARMmbed/secsrv-qe-scripts.git']]]
+		dir('qe-scripts') {
+			sh "mkdir -p temp"
+			dir('temp') {
+				stage('unit_tests') {
+					for (int i = 0; i < num_files; i++) {
+						def bin_name = files[i].name
+						def bin_path = '../../' + files[i].path
+						sh """#!/bin/bash -lxe
+							log_name=`echo "$bin_path" | cut -d '/' -f4`_$bin_name".log"
+							python ../raas/raas_unit_test.py --platform=K64F --bin=$bin_path --log=\$log_name --raas=kfn
+							python ../unit_tests/qe_unity_to_junit.py . --parse-from-string="Starting"
+							python ../unit_tests/qe_unit_test_status.py .				
+						"""
+					}
+				}
+			}
+		}		
+	} catch (Exception e) {
+		currBuildStatus = hudson.model.Result.FAILURE
+		throw e
+	} finally {
+		dir('qe-scripts') {
+			dir('temp') {
+				archiveArtifacts "*.log, *.txt"	
+			}
+		}
+		def subjectStatus = 'SUCCESS'
+		def shouldSend = true
+		def prevBuildStatus = currentBuild.rawBuild.getPreviousBuild()?.getResult()
+		if (currBuildStatus.equals(hudson.model.Result.SUCCESS)) {
+			if (prevBuildStatus.equals(hudson.model.Result.FAILURE) ||
+				currBuildStatus.equals(hudson.model.Result.ABORTED) ||
+				currBuildStatus.equals(hudson.model.Result.UNSTABLE)) {
+				subjectStatus = 'FIXED'
+			} else {
+				shouldSend = false
+			}
+		} else {
+			if (prevBuildStatus.equals(hudson.model.Result.SUCCESS)) {
+				subjectStatus = 'BROKEN'
+			} else {
+				subjectStatus = 'Still FAILED'
+			}
+		}
+		if (shouldSend) {
+			emailext body: 'Please go to ${BUILD_URL} and verify the build', recipientProviders: [[$class: 'CulpritsRecipientProvider']], subject: "${subjectStatus}! Job ${JOB_NAME} (${BUILD_NUMBER})", to: 'iot-eng-provisioning-client@arm.com;Evgeni.Bolotin@arm.com;Nimrod.Zimerman@arm.com'
+		}
+	}
+}
+
+

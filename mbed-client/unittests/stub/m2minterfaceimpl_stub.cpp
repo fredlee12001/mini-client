@@ -1,0 +1,197 @@
+/*
+ * Copyright (c) 2015 ARM Limited. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the License); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "m2minterfaceimpl_stub.h"
+#include "common_stub.h"
+
+u_int8_t m2minterfaceimpl_stub::int_value;
+bool m2minterfaceimpl_stub::bool_value;
+
+void m2minterfaceimpl_stub::clear()
+{
+    int_value = 0;
+    bool_value = false;
+}
+
+M2MInterfaceImpl::M2MInterfaceImpl(M2MInterfaceObserver& observer,
+                                   const char *,
+                                   const char *,
+                                   const int32_t,
+                                   const uint16_t,
+                                   const char *,
+                                   M2MInterface::BindingMode mode,
+                                   M2MInterface::NetworkStack stack,
+                                   const char *)
+: _observer(observer),
+  _current_state(0),
+  _max_states( STATE_MAX_STATES ),
+  _event_generated(false),
+  _event_data(NULL),
+  _queue_sleep_timer(*this),
+  _retry_timer(*this),
+  _connection_handler(*this, NULL, mode, stack),
+  _nsdl_interface(*this, _connection_handler)
+{
+}
+
+M2MInterfaceImpl::~M2MInterfaceImpl()
+{
+}
+void M2MInterfaceImpl::bootstrap(M2MSecurity *)
+{
+}
+
+void M2MInterfaceImpl::cancel_bootstrap()
+{
+}
+
+void M2MInterfaceImpl::register_object(M2MSecurity *, const M2MObjectList &)
+{
+}
+
+void M2MInterfaceImpl::update_registration(M2MSecurity *, const uint32_t)
+{
+}
+void M2MInterfaceImpl::update_registration(M2MSecurity *,
+                                           const M2MObjectList &,
+                                           const uint32_t)
+{
+}
+
+void M2MInterfaceImpl::unregister_object(M2MSecurity*)
+{
+}
+
+void M2MInterfaceImpl::set_queue_sleep_handler(callback_handler)
+{
+
+}
+
+void M2MInterfaceImpl::set_platform_network_handler(void *)
+{
+
+}
+
+void M2MInterfaceImpl::set_random_number_callback(random_number_cb)
+{
+
+}
+
+void M2MInterfaceImpl::set_entropy_callback(entropy_cb)
+{
+
+}
+
+void M2MInterfaceImpl::coap_message_ready(uint8_t *,
+                                uint16_t ,
+                                sn_nsdl_addr_s *)
+{
+
+}
+
+void M2MInterfaceImpl::client_registered(M2MServer*)
+{
+
+}
+
+void M2MInterfaceImpl::registration_error(uint8_t, bool)
+{
+
+}
+
+void M2MInterfaceImpl::client_unregistered()
+{
+
+}
+
+void M2MInterfaceImpl::bootstrap_done(M2MSecurity *)
+{
+
+}
+
+void M2MInterfaceImpl::bootstrap_wait(M2MSecurity *)
+{
+
+}
+
+void M2MInterfaceImpl::bootstrap_error(const char *reason)
+{
+
+}
+
+void M2MInterfaceImpl::bootstrap_error_wait(const char *)
+{
+
+}
+
+void M2MInterfaceImpl::coap_data_processed()
+{
+
+}
+
+void M2MInterfaceImpl::data_available(uint8_t*,
+                            uint16_t,
+                            const M2MConnectionObserver::SocketAddress &)
+{
+
+}
+
+void M2MInterfaceImpl::socket_error(uint8_t, bool)
+{
+
+}
+
+void M2MInterfaceImpl::address_ready(const M2MConnectionObserver::SocketAddress &,
+                           M2MConnectionObserver::ServerType,
+                           const uint16_t)
+{
+
+}
+
+void M2MInterfaceImpl::data_sent()
+{
+}
+
+void M2MInterfaceImpl::timer_expired(M2MTimerObserver::Type)
+{
+
+}
+
+void M2MInterfaceImpl::registration_updated(const M2MServer &)
+{
+}
+
+void M2MInterfaceImpl::value_updated(M2MBase *)
+{
+
+}
+
+void M2MInterfaceImpl::update_endpoint(const char *name) {
+
+}
+
+void M2MInterfaceImpl::update_domain(const char *domain) {
+
+}
+
+const String M2MInterfaceImpl::internal_endpoint_name() const
+{
+
+}
+
+const char *M2MInterfaceImpl::error_description() const
+{
+
+}

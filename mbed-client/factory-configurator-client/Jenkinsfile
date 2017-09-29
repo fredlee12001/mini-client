@@ -1,0 +1,11 @@
+#!/usr/bin/env groovy
+
+stage('Bootstrap') {
+    node('master') {
+        checkout scm
+        load 'jenkins/jenkins_core.groovy'
+    }.run_job(
+        scm: scm,
+        entry_refspec: null, // derived from scm - according to Jenkins configuration
+    )
+}

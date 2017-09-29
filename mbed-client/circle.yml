@@ -1,0 +1,15 @@
+dependencies:
+  pre:
+    - sudo apt-get update
+    - sudo apt-get install python-setuptools cmake build-essential ninja-build python-dev libffi-dev libssl-dev lcov gcc-4.8-multilib g++-4.8-multilib libc6-dev-i386
+    - pip install yotta
+    - mkdir ~/.yotta/ && echo $yotta_config > ~/.yotta/config.json
+    - sudo ln -s /usr/include/asm-generic /usr/include/asm
+    - sudo chmod 777 -R /usr/local/lib/
+
+test:
+  override:
+    - yt target mcc-linux-x86
+    - yt install
+    - yt ls -a
+    - MCC_LINUX_X86_EXTRA_DEFS='-DTARGET_IS_PC_LINUX -DDEBUG=1 -DMBEDTLS_X509_CSR_WRITE_C=1 -DMBEDTLS_X509_CREATE_C=1 -DMBEDTLS_CIPHER_MODE_CTR=1 -DMBEDTLS_PEM_WRITE_C -DMBEDTLS_PLATFORM_TIME_ALT -DMBEDTLS_CMAC_C -DPB_BIELD_32BIT -DPB_ENABLE_MALLOC -DPB_BUFFER_ONLY -DPV_PROFILE_STD -DSA_PV_PLAT_PC -DMBED_CLOUD_CLIENT_ENDPOINT_TYPE=\"default\" -DMBED_CLOUD_CLIENT_LIFETIME=600 -DSN_COAP_MAX_BLOCKWISE_PAYLOAD_SIZE=8192 -DMBED_CLOUD_CLIENT_TRANSPORT_MODE_UDP -DMBED_CLOUD_CLIENT_SUPPORT_UPDATE -DMBED_CONF_NS_HAL_PAL_EVENT_LOOP_THREAD_STACK_SIZE=102400 -DMBEDTLS_ENTROPY_HARDWARE_ALT' MCC_LINUX_X86_EXTRA_C_FLAGS="-m32" MCC_LINUX_X86_EXTRA_CXX_FLAGS="-m32 -std=gnu++11" yt build

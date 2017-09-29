@@ -1,0 +1,92 @@
+#
+# Makefile.test for mbed-client-mbed-tls unit tests
+#
+
+
+# List of subdirectories to build
+TEST_FOLDER := ./test/
+# List of unit test directories for libraries
+UNITTESTS := $(sort $(dir $(wildcard $(TEST_FOLDER)*/unittest/*)))
+TESTDIRS := $(UNITTESTS:%=build-%)
+CLEANTESTDIRS := $(UNITTESTS:%=clean-%)
+COVERAGEFILE := ./lcov/coverage.info
+
+TEST_MODULES = ../../test_modules
+TEST_MODULE_MBED_COAP = $(TEST_MODULES)/mbed-coap
+TEST_MODULE_MBED_TRACE = $(TEST_MODULES)/mbed-trace
+TEST_MODULE_NANOSTACK = $(TEST_MODULES)/nanostack-libservice
+TEST_MODULE_MBED_OS = $(TEST_MODULES)/mbed-os
+TEST_MODULE_MBED_CLIENT_PAL = $(TEST_MODULES)/mbed-client-pal
+TEST_MODULE_MBED_TLS = $(TEST_MODULES)/mbedtls
+
+.PHONY: clone
+clone:
+
+	if [ ! -d $(TEST_MODULES) ]; \
+		then mkdir $(TEST_MODULES); \
+	fi;
+
+	if [ ! -d $(TEST_MODULE_MBED_COAP) ]; \
+		then git clone --depth 1 git@github.com:ARMmbed/mbed-coap.git $(TEST_MODULE_MBED_COAP); \
+	fi;
+
+	if [ ! -d $(TEST_MODULE_MBED_TRACE) ]; \
+		then git clone --depth 1 git@github.com:ARMmbed/mbed-trace.git $(TEST_MODULE_MBED_TRACE); \
+	fi;
+
+	if [ ! -d $(TEST_MODULE_NANOSTACK) ]; \
+		then git clone --depth 1 git@github.com:ARMmbed/nanostack-libservice.git $(TEST_MODULE_NANOSTACK); \
+	fi;
+
+	if [ ! -d $(TEST_MODULE_MBED_OS) ]; \
+		then git clone --depth 1 git@github.com:ARMmbed/mbed-os.git $(TEST_MODULE_MBED_OS); \
+	fi;
+
+	if [ ! -d $(TEST_MODULE_MBED_CLIENT_PAL) ]; \
+		then git clone --depth 1 git@github.com:ARMmbed/mbed-client-pal.git $(TEST_MODULE_MBED_CLIENT_PAL); \
+	fi;
+
+	if [ ! -d $(TEST_MODULE_MBED_TLS) ]; \
+		then git clone --depth 1 git@github.com:ARMmbed/mbedtls.git $(TEST_MODULE_MBED_TLS); \
+	fi;
+
+.PHONY: test
+test: $(TESTDIRS)
+	@rm -rf ./lcov
+	@rm -rf ./coverage
+	@mkdir -p lcov
+	@mkdir -p lcov/results
+	@mkdir coverage
+	@find ./test -name '*.xml' | xargs cp -t ./lcov/results/
+	@rm -f lcov/index.xml
+	@./xsl_script.sh
+	@cp junit_xsl.xslt lcov/.
+	@xsltproc -o lcov/testresults.html lcov/junit_xsl.xslt lcov/index.xml
+	@rm -f lcov/junit_xsl.xslt
+	@rm -f lcov/index.xml
+	@find ./ -name '*.gcno' | xargs cp --backup=numbered -t ./coverage/
+	@find ./ -name '*.gcda' | xargs cp --backup=numbered -t ./coverage/
+	@gcovr --object-directory ./coverage  --exclude-unreachable-branches -e '.*/mbed-client/.*' -e '.*/mbed-client-mbed-tls/.*' -e '.*/unittests/.*' -e '.*/usr/.*' -x -o ./lcov/gcovr.xml
+	@lcov -d test/. -c -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/usr*" -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/test*" -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/unittests*" -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "mbed-client/mbed-client/*" -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/mbed-client-libservice*" -o $(COVERAGEFILE)
+	@genhtml -q $(COVERAGEFILE) --show-details --output-directory lcov/html
+	@echo mbed-client-mbed-tls module unit tests built
+
+$(TESTDIRS):
+	@make -C $(@:build-%=%)
+
+$(CLEANDIRS):
+	@make -C $(@:clean-%=%) clean
+
+$(CLEANTESTDIRS):
+	@make -C $(@:clean-%=%) clean
+
+# Extend default clean rule
+clean: clean-extra
+
+clean-extra: $(CLEANDIRS) \
+$(CLEANTESTDIRS)

@@ -1,0 +1,240 @@
+// List of targets to compile
+def targets = [
+  "UBLOX_EVK_ODIN_W2_LWIP4",
+  "NUCLEO_F429ZI_LWIP4",
+  "K64F_LWIP4",
+  "K64F_LWIP4_UDP",
+  "K64F_LWIP6",
+  "K64F_WIFI4",
+  "Linux",
+  "FreeRTOS"
+  ]
+
+// Map toolchains to compiler labels on Jenkins
+def toolchains = [
+  ARM: "armcc",
+  IAR: "iar_arm",
+  GCC_ARM: "arm-none-eabi-gcc"
+  ]
+
+// Initial maps for parallel build steps
+def buildStepsForParallel = [:]
+def testStepsForParallel = [:]
+
+for (target in targets) {
+    for(toolchain_key in toolchains.keySet()) {
+        def stepName = "${target} ${toolchain_key}"
+        if(("${target}" == "Linux" || "${target}" == "FreeRTOS") && "${toolchain_key}" != "GCC_ARM" ) {
+            echo "Skip ${target} ${toolchain_key}"
+        } else {
+            echo "Include ${target} ${toolchain_key}"
+            buildStepsForParallel[stepName] = buildStep(target, toolchains[toolchain_key], toolchain_key)
+        }
+    }
+}
+
+for (target in targets) {
+    for(toolchain_key in toolchains.keySet()) {
+        def stepName = "${target} ${toolchain_key}"
+        echo "${stepName}"
+
+        if(("${target}" == "Linux" && "${toolchain_key}" == "GCC_ARM") ||
+           // Do not run FreeRTOS tests due to defect in HW runs
+           ("${target}" ==~ /K64F(.*)/ && "${toolchain_key}" == "GCC_ARM")) {
+            //("${target}" ==~ /K64F(.*)/ && "${toolchain_key}" == "GCC_ARM") ||
+            //("${target}" == "FreeRTOS" && "${toolchain_key}" == "GCC_ARM")) {
+            echo "Test step"
+            testStepsForParallel[stepName] = testStep(target, toolchain_key)
+        } else {
+            echo "Skip testing of ${target} ${toolchain_key}"
+        }
+    }
+}
+
+// Actually run the steps in parallel - parallel takes a map as an argument, hence the above.
+timestamps {
+    parallel buildStepsForParallel
+    parallel testStepsForParallel
+}
+
+//Create build steps for parallel execution
+def buildStep(target, compilerLabel, toolchain) {
+    return {
+        stage ("Build_${target}_${toolchain}") {
+            def config_file = "mbed_app.json"
+            node ("${compilerLabel}") {
+                deleteDir()
+                dir("mbed-client-ci-scripts") {
+                    git "git@github.com:ARMmbed/mbed-client-ci-scripts.git"
+                }
+
+                dir("mbed-client-testapp") {
+                    def board=""
+                    git "git@github.com:ARMmbed/mbed-client-testapp.git"
+                    sh "git checkout mbed-cloud-client-rel1.2"
+                    sh "cp ./configs/mbed_cloud_dev_credentials_production-CI.c ./source/"
+                    sh "mbed deploy --protocol ssh"
+                    dir("mbed-cloud-client") {
+                        checkout scm
+                        sh "mbed deploy --protocol ssh"
+                        sh "mbed sync"
+                    }
+                    if("${target}" == "Linux") {
+                        sh "python pal-platform/pal-platform.py -v deploy --target=x86_x64_NativeLinux_mbedtls generate"
+                        dir("__x86_x64_NativeLinux_mbedtls") {
+                            sh "cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=./../pal-platform/Toolchain/GCC/GCC.cmake -DEXTARNAL_DEFINE_FILE=./../define.txt"
+                            sh "make mbedClientTestapp.elf"
+                            stash includes: "**/mbedClientTestapp.elf", name: "mbedClientTestapp.elf"
+                            step([$class: 'ArtifactArchiver', artifacts: '**/mbedClientTestapp.elf', fingerprint: true])
+                        }
+                    } else if("${target}" == "FreeRTOS") {
+                        def test = sh (script: "find /usr -name 'arm-none-eabi-gcc'",
+                                                        returnStdout: true)
+
+                        sh "python pal-platform/pal-platform.py -v deploy --target=K64F_FreeRTOS_mbedtls generate"
+                        withEnv(["ARMGCC_DIR=/usr/local/gcc-arm-none-eabi-6-2017-q1-update"]) {
+                            dir("__K64F_FreeRTOS_mbedtls") {
+                                sh "cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=./../pal-platform/Toolchain/ARMGCC/ARMGCC.cmake -DEXTARNAL_DEFINE_FILE=./../define.txt"
+                                sh "make mbedClientTestapp.elf"
+                                stash includes: "**/mbedClientTestapp.bin", name: "mbedClientTestapp.bin"
+                                step([$class: 'ArtifactArchiver', artifacts: "**/mbedClientTestapp.bin", fingerprint: true])
+                            }
+                        }
+                    // Rest will be hardware targets with mbed OS
+                    } else {
+                        if("${target}" ==~ /K64F(.*)/) {
+                            board="K64F"
+                        } else if("${target}" ==~ /NUCLEO_F429ZI(.*)/) {
+                            board="NUCLEO_F429ZI"
+                        } else if("${target}" ==~ /UBLOX_EVK_ODIN_W2(.*)/) {
+                            board="UBLOX_EVK_ODIN_W2"
+                        } else {
+                            echo "Unsupported mbed OS target"
+                            exit 1
+                        }
+                        // Special case with the UDP simple test
+                        if("${target}" == "K64F_LWIP4_UDP") {
+                            sh "sed -i 's/MBED_CLOUD_CLIENT_TRANSPORT_MODE_TCP/MBED_CLOUD_CLIENT_TRANSPORT_MODE_UDP/' mbed-client-testapp/mbed_cloud_client_user_config.h"
+                        } else {
+                            if("${target}" ==~ /(.*)LWIP4(.*)/ ) {
+                                echo "Handling LWIP4"
+                                sh "cp configs/eth_v4.json mbed_app.json"
+                                sh "cp configs/eth-wifi-mbedignore .mbedignore"
+                            } else if("${target}" ==~ /(.*)LWIP6(.*)/ ) {
+                                echo "Handling LWIP6"
+                                sh "cp configs/eth_v6.json mbed_app.json"
+                                sh "cp configs/eth-wifi-mbedignore .mbedignore"
+                            } else if("${target}" ==~ /(.*)WIFI4(.*)/ ) {
+                                echo "Handling WIFI4"
+                                sh "cp configs/wifi_esp8266_v4.json mbed_app.json"
+                                sh "cp configs/eth-wifi-mbedignore .mbedignore"
+                                sh "sed -i 's/SSID/systest/' mbed_app.json"
+                                sh "sed -i 's/Password/RaaSysT35T/' mbed_app.json"
+                            }
+                        }
+                        sh "mbed compile -m ${board} -t ${toolchain} -c"
+                        // Stash binary, tests will used it from stash
+                        if("${toolchain}" == "GCC_ARM") {
+                            stash includes: "**/mbed-client-testapp.bin", name: "testapp_${target}_${toolchain}_bin"
+                            step([$class: 'ArtifactArchiver', artifacts: '**/mbed-client-testapp.bin', fingerprint: true])
+                        }
+                    }
+                }
+            step([$class: 'WsCleanup'])
+            }
+        }
+    }
+}
+
+def testStep(target, toolchain) {
+    return {
+        stage ("Light suite ${target}_${toolchain}") {
+            node ("client-test") {
+                deleteDir()
+                dir("mbed-clitest") {
+                    git "git@github.com:ARMmbed/mbed-clitest.git"
+                    sh "git checkout ${CLOUD_CLIENT_TEAM_CLITEST}"
+                }
+
+                def API_KEY=""
+                dir("mbed-clitest/mbed-client-ci-scripts") {
+                    git "git@github.com:ARMmbed/mbed-client-ci-scripts.git"
+                    sh "cp test_automation/env_cfg_cases_using_production2.json env_cfg.json"
+                    API_KEY = sh(script: 'cat env_cfg.json | python2 -c "import sys, json; print json.load(sys.stdin)[\'extApps\'][\'Connector\'][\'token\']"', returnStdout: true)
+                    API_KEY = API_KEY.replaceAll("(\\r|\\n)", "");
+                }
+
+                dir("mbed-clitest/testcases/mbed-clitest-mbed-client") {
+                    git "git@github.com:ARMmbed/mbed-clitest-mbed-client.git"
+                }
+
+                env.RAAS_USERNAME = "ci"
+                env.RAAS_PASSWORD = "ci"
+                def ADDR=""
+                if("${target}" == "Linux") {
+                    unstash "mbedClientTestapp.elf"
+                    sh "cp Debug/mbedClientTestapp.elf mbed-clitest"
+                    dir("mbed-clitest") {
+                        sh "python clitest.py --bin ./mbedClientTestapp.elf --log ${target}_log --suitedir testcases/mbed-clitest-mbed-client/suites --suite cloud-light-1.2.json --env_cfg mbed-client-ci-scripts/test_automation/env_cfg_cases_using_production2.json --type process -vvv -w --nobuf NOBUF"
+                    }
+                } else if("${target}" == "FreeRTOS") {
+                    unstash "mbedClientTestapp.bin"
+                    sh "cp Debug/mbedClientTestapp.bin mbed-clitest"
+                    ADDR="62.44.193.186:8038"
+                    dir("mbed-clitest") {
+                        sh "python clitest.py --raas ${ADDR} --raas_share_allocs --raas_queue --raas_queue_timeout 1200 --forceflash_once --bin mbedClientTestapp.bin --log ${target}_log --suitedir testcases/mbed-clitest-mbed-client/suites --suite cloud-light-1.2.json --env_cfg mbed-client-ci-scripts/test_automation/env_cfg_cases_using_production2.json --type hardware --reset -vvv -w --nobuf NOBUF --serial_ch_size 1"
+                    }
+                } else if("${target}" ==~ /K64F(.*)/) {
+                    if("${target}" == "K64F_LWIP4") {
+                        ADDR="54.229.57.51:8000"
+                    }
+                    if("${target}" == "K64F_LWIP4_UDP") {
+                        ADDR="54.229.57.51:8000"
+                    }
+                    if("${target}" == "K64F_LWIP6") {
+                        ADDR="54.229.57.51:8000"
+                    }
+                    if("${target}" == "K64F_WIFI4") {
+                        ADDR="54.154.157.168:8000"
+                    }
+                    unstash "testapp_${target}_${toolchain}_bin"
+                    sh "ls -ltr"
+                    sh "cp BUILD/K64F/GCC_ARM/mbed-client-testapp.bin mbed-clitest"
+                    dir("mbed-clitest") {
+                        sh "ls -ltr"
+                        if("${target}" == "K64F_LWIP4_UDP") {
+                            sh "python clitest.py --raas ${ADDR} --raas_share_allocs --raas_queue --raas_queue_timeout 1200 --forceflash_once --bin mbed-client-testapp.bin --log ${target}_log --tc factory_reset,I0010115F001 --env_cfg mbed-client-ci-scripts/test_automation/env_cfg_cases_using_production2.json --type hardware --reset -vvv -w --tc_cfg mbed-client-ci-scripts/configs/tc_K64F_LWIP4.json"
+                        } else {
+                            sh "python clitest.py --raas ${ADDR} --raas_share_allocs --raas_queue --raas_queue_timeout 1200 --forceflash_once --bin mbed-client-testapp.bin --log ${target}_log --suitedir testcases/mbed-clitest-mbed-client/suites --suite cloud-light-1.2.json --env_cfg mbed-client-ci-scripts/test_automation/env_cfg_cases_using_production2.json --type hardware --reset -vvv -w --tc_cfg mbed-client-ci-scripts/configs/tc_${target}.json"
+                        }
+                    }
+                } else {
+                    echo "Skipping the target!"
+                }
+                if(("${target}" == "Linux") || ("${target}" ==~ /K64F.*/) || "${target}" == "FreeRTOS") {
+                    step([$class: 'ArtifactArchiver', artifacts: "mbed-clitest/${target}_log/**/*", fingerprint: true])
+                    step([$class: 'JUnitResultArchiver', testResults: "mbed-clitest/${target}_log/junit.xml"])
+                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false,
+                       reportDir: "mbed-clitest/${target}_log/",
+                       reportFiles: 'latest.html',
+                       reportName: "Test Results for ${toolchain} with ${target}"])
+                }
+
+                //clear provisioned device from the DC
+                DEVICE_ID = sh (
+                    script: "find . -name \\Dut.log -type f -exec grep 'ConnectorClient::set_connector_credentials - CN:' {} \\; | tail -c 33",
+                    returnStdout: true
+                ).trim()
+
+                def SERVER_ADDRESS="https://api.us-east-1.mbedcloud.com"
+                sh (
+                    script: "curl -X DELETE -H 'Content-Type: application/json' -H 'Authorization: Bearer ${API_KEY}' '${SERVER_ADDRESS}/v3/devices/${DEVICE_ID}'",
+                    returnStdout: true
+                )
+
+                // Clean up workarea
+                step([$class: 'WsCleanup'])
+            }
+        }
+    }
+}

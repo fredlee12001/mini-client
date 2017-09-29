@@ -1,0 +1,3 @@
+CMakeLists.txt
+ftcd_comm_serial/*
+mbed-trace-helper/source/mbed-trace-helper.c

@@ -1,0 +1,31 @@
+{
+  "name": "factory-configurator-client",
+  "version": "0.0.0",
+  "license": "ARM",
+  "lib": ".",
+  "dependencies": {
+    "secsrv-cbor": "ARMmbed/secsrv-cbor",
+    "mbed-client-esfs": "ARMmbed/mbed-client-esfs"
+  },
+  "extraIncludes": [
+      "factory_configurator_client/factory_configurator_client",
+      "factory_configurator_client/source",
+      "factory_configurator_client/source/include",
+      "fcc_bundle_handler/fcc_bundle_handler",
+      "fcc_bundle_handler/source",
+      "fcc_bundle_handler/source/include",
+      "key_config_manager/key_config_manager",
+      "utils/utils",
+      "logger/logger",
+      "storage/storage",
+      "key_config_manager/source/include",
+      "crypto/source/include",
+      "crypto/crypto",
+      "crypto_service/crypto_service",
+      "crypto_service/source/include",
+      "ftcd_comm_base/ftcd_comm_base",
+      "ftcd_comm_socket/ftcd_comm_socket",
+      "key_config_manager",
+      "fcc_output_info_handler/fcc_output_info_handler"
+  ]
+}

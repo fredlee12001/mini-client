@@ -1,0 +1,9 @@
+pal-platform/*
+__x86_x64_NativeLinux_mbedtls/*
+mbed-client/factory-configurator-client/*
+mbed-client/mbed-client-pal/*
+mbed-client/update-client-hub/*
+mbed-client/source/*
+mbed-client/unittests/*
+nbiot-at-advantech-quectel/main.cpp
+mbed-os/*

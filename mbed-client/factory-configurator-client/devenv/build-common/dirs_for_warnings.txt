@@ -1,0 +1,11 @@
+.*fcc-bundle-handler/.*: [W,w]arning:
+.*crypto/.*: [W,w]arning:
+.*crypto-service/.*: [W,w]arning:
+.*ftcd-comm-base/.*: [W,w]arning:
+.*ftcd-comm-serial/.*: [W,w]arning:
+.*ftcd-comm-socket/.*: [W,w]arning:
+.*key-config-manager/.*: [W,w]arning:
+.*logger/.*: [W,w]arning:
+.*factory-configurator_client/.*: [W,w]arning:
+.*mbed-trace-helper/.*: [W,w]arning:
+.*fcc-output-info-handler/.*: [W,w]arning:

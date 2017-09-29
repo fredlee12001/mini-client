@@ -1,0 +1,63 @@
+{
+    "config": {
+        "network-interface":{
+            "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN, MESH_LOWPAN_ND, MESH_THREAD",
+            "value": "NBIOT"
+        },
+        "sock-type": "UDP",
+        "mesh_radio_type": {
+        	"help": "options are ATMEL, MCR20, SPIRIT1",
+        	"value": "ATMEL"
+        },
+        "wifi-ssid": {
+            "help": "WiFi SSID",
+            "value": "\"username\""
+        },
+        "wifi-password": {
+            "help": "WiFi Password",
+            "value": "\"password\""
+        },
+        "wifi-tx": {
+            "help": "TX pin for serial connection to external device",
+            "value": "D1"
+        },
+        "wifi-rx": {
+            "help": "RX pin for serial connection to external device",
+            "value": "D0"
+        },
+        "bc95-tx": {
+            "help": "TX pin for serial connection to external device",
+            "value": "D1"
+        },
+        "bc95-rx": {
+            "help": "RX pin for serial connection to external device",
+            "value": "D0"
+        }
+    },
+    "macros": ["MBEDTLS_USER_CONFIG_FILE=\"mbedtls_mbed_client_ublox_c027.h\"", "MBEDTLS_ENTROPY_HARDWARE_ALT"],
+    "target_overrides": {
+        "*": {
+            "target.features_add": ["COMMON_PAL"],
+            "nanostack-hal.event_loop_thread_stack_size": 2572,
+            "mbed-client.event-loop-size": 512,
+            "mbed-trace.enable": null,
+            "lwip.ipv4-enabled": true,
+            "lwip.ethernet-enabled": false,
+            "lwip.tcp-enabled": false,
+            "platform.stdio-convert-newlines": true,
+            "platform.stdio-baud-rate": 115200,
+            "platform.default-serial-baud-rate": 115200
+        },
+        "NUCLEO_F401RE": {
+            "wifi-tx": "PA_11",
+            "wifi-rx": "PA_12"
+        },
+        "NUCLEO_F411RE": {
+            "wifi-tx": "PA_11",
+            "wifi-rx": "PA_12"
+        },
+        "UBLOX_EVK_ODIN_W2": {
+        "target.device_has_remove": ["EMAC"]
+        }
+    }
+}

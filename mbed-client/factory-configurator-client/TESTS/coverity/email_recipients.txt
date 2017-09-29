@@ -1,0 +1,2 @@
+iot-eng-provisioning-client@arm.com
+Evgeni.Bolotin@arm.com

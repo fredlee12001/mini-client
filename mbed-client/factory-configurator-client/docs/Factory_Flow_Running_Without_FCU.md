@@ -1,0 +1,1 @@
+[https://github.com/ARMmbed/mbed_Cloud_Docs/blob/R1.2/Docs/deploy/factory/Factory_Flow_Running_Without_FCU.md]https://github.com/ARMmbed/mbed_Cloud_Docs/blob/R1.2/Docs/deploy/factory/Factory_Flow_Running_Without_FCU.md(https://github.com/ARMmbed/mbed_Cloud_Docs/blob/R1.2/Docs/deploy/factory/Factory_Flow_Running_Without_FCU.md)
